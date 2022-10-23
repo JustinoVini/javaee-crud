@@ -1,11 +1,17 @@
 package br.com.javacrud.controller;
 
 import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import br.com.javacrud.dao.ClienteDao;
+import br.com.javacrud.model.Cliente;
 
 @WebServlet("/CreateAndFind")
 public class ClienteCreateAndSelect extends HttpServlet {
@@ -19,13 +25,31 @@ public class ClienteCreateAndSelect extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		String pesquisa = request.getParameter("pesquisa");
+		
+		if(pesquisa == null) {
+			pesquisa="";
+		}
+		
+		List<Cliente> clientes = ClienteDao.find(pesquisa);
+		
+		request.setAttribute("clientes", clientes);
+		RequestDispatcher requestDispatcher = request.getRequestDispatcher("lista.jsp");
+		requestDispatcher.forward(request, response);
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
-		doGet(request, response);
+		Cliente cliente = new Cliente();
+		
+		cliente.setNome(request.getParameter("nome"));
+		cliente.setCpf(request.getParameter("cpf"));
+		cliente.setNascimento(request.getParameter("nascimento"));
+		cliente.setSituacao(request.getParameter("situacao"));
+		
+		ClienteDao.create(cliente);
+		
+		//doGet(request, response);
 	}
 
 }

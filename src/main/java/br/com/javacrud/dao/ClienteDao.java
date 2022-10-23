@@ -4,81 +4,96 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import br.com.javacrud.jdbc.ConnectionFactory;
 import br.com.javacrud.model.Cliente;
 
-public class ClienteDao {
+public class ClienteDao implements CRUD{
 
-	private static Connection connection;
-
-	public ClienteDao() {
-		this.connection = new ConnectionFactory().getConnection();
-	}
-
+	private static Connection connection = ConnectionFactory.getConnection();
+	private static String sql;
+	
 	public static void create(Cliente cliente) {
-		// String do banco de dados.
-		String sql = "insert into clientes(nome,cpf,nascimento,situacao)values(?,?,?,?)";
+		 sql = "INSERT INTO clientes VALUES (null, ?, ?, ?, ?)";
+		 
+		 try {
+			 PreparedStatement preparedStatement = connection.prepareStatement(sql);
+			 
+			 preparedStatement.setString(1, cliente.getNome());
+			 preparedStatement.setString(2, cliente.getCpf());
+			 preparedStatement.setString(3, cliente.getNascimento());
+			 preparedStatement.setString(4, cliente.getSituacao());
+			 
+			 preparedStatement.executeUpdate();
+			 
+			 System.out.println("--correct insert on database");
+			 
+		 } catch(SQLException e) {
+			 System.out.println("--incorrect insert on database. " + e.getMessage());
+		 }
+	}
+	
+	public static void delete(int clienteId) {
+		sql = "DELETE FROM clientes WHERE id = ?";
+		
 		try {
-			PreparedStatement psmt = connection.prepareStatement(sql);
-			psmt.setString(1, cliente.getNome());
-			psmt.setString(2, cliente.getCpf());
-			psmt.setString(3, cliente.getNascimento());
-			psmt.setString(4, cliente.getSituacao());
-			// Executa a query
-			psmt.execute();
-			psmt.close();
+			PreparedStatement preparedStatement = connection.prepareStatement(sql);
+			
+			preparedStatement.setInt(1, clienteId);
+			preparedStatement.executeUpdate();
+			
+			System.out.println("--correct delete on cliente");
+			
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			System.out.println("--incorrect delete on cliente. " + e.getMessage());
 		}
 	}
-
-	public static void delete(Long clienteId) {
+	
+	public static List<Cliente> find(String pesquisa){
+		
+		sql = String.format("SELECT * FROM clientes WHERE nome like '%s%%' OR cpf LIKE '%s%%' ", pesquisa, pesquisa);
+		List<Cliente> clientes = new ArrayList<Cliente>();
+		
 		try {
-			PreparedStatement psmt = connection.prepareStatement("delete from clientes where id=?");
-			psmt.setLong(1, clienteId);
-			psmt.execute();
-			psmt.close();
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public List<Cliente> find() {
-		try {
-			List<Cliente> clientes = new ArrayList<Cliente>();
-			PreparedStatement psmt = this.connection.prepareStatement("select * from clientes");
-			ResultSet rs = psmt.executeQuery();
-
-			while (rs.next()) {
-				Cliente contato = new Cliente();
-				contato.setId(rs.getLong("id"));
-				contato.setNome(rs.getString("nome"));
-				contato.setCpf(rs.getString("email"));
-				contato.setNascimento(rs.getString("endereco"));
-				contato.setSituacao(rs.getString("endereco"));
-
-				// Adicionando objetos a lista
-				clientes.add(contato);
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
+			
+			while (resultSet.next()) {
+				
+				Cliente cliente = new Cliente();
+				
+				cliente.setId(resultSet.getLong("id"));
+				cliente.setNome(resultSet.getString("nome"));
+				cliente.setCpf(resultSet.getString("cpf"));
+				cliente.setNascimento(resultSet.getString("nascimento"));
+				cliente.setSituacao(resultSet.getString("situacao"));
+				
+				clientes.add(cliente);
+				
 			}
-			rs.close();
-			psmt.close();
+			
+			System.out.println("--correct find clientes");
 			return clientes;
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			
+		} catch(SQLException e) {
+			System.out.println("--incorrect find clientes. " + e.getMessage());
+			return null;
 		}
+		
+		
 	}
-
-	public static Cliente findByPk(Long clienteId) {
-		String sql = "SELECT * FROM clientes WHERE id = ?";
-
+	
+	public static Cliente findByPk(int clienteId) {
+		sql = String.format("SELECT * FROM clientes WHERE id = %d ", clienteId);
+		
 		try {
-			PreparedStatement psmt = connection.prepareStatement(sql);
-			ResultSet resultSet = psmt.executeQuery(sql);
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
 			Cliente cliente = new Cliente();
-
+			
 			while (resultSet.next()) {
 				cliente.setId(resultSet.getLong("id"));
 				cliente.setNome(resultSet.getString("nome"));
@@ -86,29 +101,35 @@ public class ClienteDao {
 				cliente.setNascimento(resultSet.getString("nascimento"));
 				cliente.setSituacao(resultSet.getString("situacao"));
 			}
-
+			
 			System.out.println("--correct find by pk clientes");
 			return cliente;
-
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			
+	} catch(SQLException e) {
+		
+			System.out.println("--incorrect find by pk clientes. " + e.getMessage());
+			return null;
 		}
 	}
-
+	
 	public static void update(Cliente cliente) {
-		String sql = "update clientes set nome=?, cpf=?, nascimento=?, situacao=? where id=?";
-
-		try {
-			PreparedStatement psmt = connection.prepareStatement(sql);
-			psmt.setString(1, cliente.getNome());
-			psmt.setString(2, cliente.getCpf());
-			psmt.setString(3, cliente.getNascimento());
-			psmt.setString(4, cliente.getSituacao());
-			psmt.setLong(5, cliente.getId());
-			psmt.execute();
-			psmt.close();
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
+		sql = "UPDATE clientes SET nome=?, cpf=?, nascimento=?, situacao=? WHERE id=?";
+		 
+		 try {
+			 PreparedStatement preparedStatement = connection.prepareStatement(sql);
+			 
+			 preparedStatement.setString(1, cliente.getNome());
+			 preparedStatement.setString(2, cliente.getCpf());
+			 preparedStatement.setString(3, cliente.getNascimento());
+			 preparedStatement.setString(4, cliente.getSituacao());
+			 preparedStatement.setLong(5, cliente.getId());
+			 
+			 preparedStatement.executeUpdate();
+			 
+			 System.out.println("--correct update on database");
+			 
+		 } catch(SQLException e) {
+			 System.out.println("--incorrect update on database. " + e.getMessage());
+		 }
 	}
 }
