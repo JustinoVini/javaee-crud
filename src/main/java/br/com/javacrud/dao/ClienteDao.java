@@ -5,10 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
-import br.com.caelum.jdbc.model.Contato;
 import br.com.javacrud.jdbc.ConnectionFactory;
 import br.com.javacrud.model.Cliente;
 
@@ -74,10 +72,43 @@ public class ClienteDao {
 	}
 
 	public static Cliente findByPk(Long clienteId) {
-		return null;
+		String sql = "SELECT * FROM clientes WHERE id = ?";
+
+		try {
+			PreparedStatement psmt = connection.prepareStatement(sql);
+			ResultSet resultSet = psmt.executeQuery(sql);
+			Cliente cliente = new Cliente();
+
+			while (resultSet.next()) {
+				cliente.setId(resultSet.getLong("id"));
+				cliente.setNome(resultSet.getString("nome"));
+				cliente.setCpf(resultSet.getString("cpf"));
+				cliente.setNascimento(resultSet.getString("nascimento"));
+				cliente.setSituacao(resultSet.getString("situacao"));
+			}
+
+			System.out.println("--correct find by pk clientes");
+			return cliente;
+
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void update(Cliente cliente) {
+		String sql = "update clientes set nome=?, cpf=?, nascimento=?, situacao=? where id=?";
 
+		try {
+			PreparedStatement psmt = connection.prepareStatement(sql);
+			psmt.setString(1, cliente.getNome());
+			psmt.setString(2, cliente.getCpf());
+			psmt.setString(3, cliente.getNascimento());
+			psmt.setString(4, cliente.getSituacao());
+			psmt.setLong(5, cliente.getId());
+			psmt.execute();
+			psmt.close();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
