@@ -14,10 +14,10 @@ import br.com.javacrud.dao.ClienteDao;
 import br.com.javacrud.model.Cliente;
 
 @WebServlet("/CreateAndFind")
-public class ClienteCreateAndSelect extends HttpServlet {
+public class ClienteCreateAndFind extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	public ClienteCreateAndSelect() {
+	public ClienteCreateAndFind() {
 		super();
 
 	}

@@ -9,7 +9,7 @@ public class ConnectionFactory {
 	private static final String user = "root";
 	private static final String password = "@Viking569038";
 
-	public static Connection createConnection() {
+	public static Connection getConnection() {
 
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
